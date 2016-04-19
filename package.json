@@ -1,0 +1,19 @@
+{
+  "name": "monte-carlo-pi",
+  "version": "1.0.0",
+  "description": "An animated Monte Carlo simulation to measure \\pi",
+  "main": "index.html",
+  "dependencies": {
+    "bower": "^1.7.9"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/chris9blanks/monte-carlo-pi.git"
+  },
+  "author": "chris.blanks@gmail.com",
+  "license": "ISC"
+}

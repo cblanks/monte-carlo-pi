@@ -1,18 +1,203 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html>
+<head>
+  <title>Measuring &pi;</title>
+<style>
 
-    <title>Measuring \pi</title>
+body {
+  font-family: 'Helvetica Neue', sans-serif;
+}
 
-    <link href="bower_components/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
-  </head>
-  <body>
-    <h1>Hello, world!</h1>
+h2 {
+  text-align: center;
+}
 
-    <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
-  </body>
+</style>
+</head>
+<body>
+<h2 id="results">&pi; = ?</h2>
+<svg width="960" height="300"></svg>
+<h2 id="trials"></h2>
+<script src="../node_modules/d3/build/d3.js"></script>
+<!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+<script>
+
+// -------------------------------------------------------------------------
+// OPTIONS
+// -------------------------------------------------------------------------
+var opts = {
+    radius: 100, // px
+    thickness: 7, // px
+    period: 1500, // ms
+    batch: 10,
+    color: {
+      circle: 'steelblue',
+      square: 'black',
+      new: 'black'
+    }
+  };
+
+// -------------------------------------------------------------------------
+// SETUP THE VIEW
+// -------------------------------------------------------------------------
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var view = svg.append("g")
+    .attr("transform", "translate(" + width / 2 + "," + height / 4 + ")")
+    .attr("fill", "none")
+    .attr("stroke-width", opts.thickness);
+
+var square = view.append("g")
+    .attr("class", "square")
+  .selectAll("rect")
+    .data([ opts.radius*2 ])
+  .enter().append("rect")
+    .attr("width", function(d) { return d; })
+    .attr("height", function(d) { return d; })
+    .attr("x", function(d) { return 2*d/3; });
+
+var circle = view.append("g")
+    .attr("class", "circle")
+  .selectAll("circle")
+    .data([ opts.radius ])
+  .enter().append("circle")
+    .attr("r", function(d) { return d; })
+    .attr("cx", function(d) { return -d/3; })
+    .attr("cy", function(d) { return d; });
+
+var ballDropZone = view.append("g")
+    .attr("class", "balls");
+
+// -------------------------------------------------------------------------
+// SETUP THE EXPERIMENT
+// -------------------------------------------------------------------------
+var trialsElement = d3.select('#trials'),
+    resultsElement = d3.select('#results'),
+    drops = [],
+    count = {
+      circle: 0,
+      square: 0
+    };
+
+function isInsideCircle(x, y) {
+    var x = x - opts.radius,
+        y = y - opts.radius,
+        r = Math.sqrt(x*x + y*y);
+
+    return r <= opts.radius;
+}
+
+function nextBall() {
+    var x = Math.random() * opts.radius * 2,
+        y = Math.random() * opts.radius * 2,
+        inCircle = isInsideCircle(x, y);
+
+    count.square++;
+    if(inCircle) { count.circle++; }
+
+    return {
+      i: count.square,
+      x: x,
+      y: y,
+      color: inCircle ? opts.color.circle : opts.color.square
+    };
+}
+
+function updateCalculations() {
+  var trialsText = "After <span style=\"color:"+opts.color.circle+"\">"+count.circle+"</span> of "+count.square+" ball";
+  if(1 !== count.square) { trialsText = trialsText+"s"; }
+  trialsElement.html(trialsText+" fall inside the circle.");
+
+  setTimeout(function() {
+    var p = Math.PI / 4,
+      pi = {
+        estimate: 4.0 * count.circle / count.square,
+        uncertainty: 4.0 * Math.sqrt(
+          p * (1-p) / count.square
+        )
+      };
+
+    resultsElement.html(
+      "&pi; = "+pi.estimate.toFixed(5)+" &pm; "+pi.uncertainty.toFixed(5)
+    );
+
+  }, opts.period);
+}
+
+function drop() {
+    for(var i=0; i<opts.batch; i++) {
+      drops.push( nextBall() );
+    }
+
+    updateCalculations();
+
+    var balls = ballDropZone.selectAll("circle")
+        .data(drops, function(d) { return d.i; });
+
+    balls // the update selection
+      .transition(t)
+        .attr("fill-opacity", function(d) {
+          var age = count.square - d.i;
+          return Math.max(1 - age*0.02, 0.1);
+        });
+
+    balls.enter().append("circle")
+        .attr("fill", opts.color.new)
+        .attr("fill-opacity", 1.0)
+        .attr("r", opts.thickness)
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", -50)
+      .transition(t)
+        .attr("cy", function(d) { return d.y; })
+        .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
+
+    if(count.square < 1000) setTimeout(drop, opts.period/2);
+}
+
+// -------------------------------------------------------------------------
+// RUN THE EXPERIMENT
+// -------------------------------------------------------------------------
+var t = d3.transition().duration(opts.period);
+
+setTimeout(function() {
+  // ACT I - A square appears
+  square.transition(t)
+    .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
+
+}, opts.period);
+
+setTimeout(function() {
+  // ACT II - A circle appears
+  circle.transition(t)
+    .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
+
+}, opts.period*2);
+
+setTimeout(function() {
+  // ACT III - The square and circle overlap
+  square.transition(t).attr("x", 0);
+  circle.transition(t).attr("cx", function(d) { return d; });
+
+}, opts.period*3);
+
+setTimeout(function() {
+  // ACT IV - The circle changes color
+  circle.transition(t)
+    .styleTween("stroke", function() { return d3.interpolate(opts.color.new, opts.color.circle); });
+
+}, opts.period*4);
+
+setTimeout(function() {
+  // ACT V - The experiment begins
+  drop();
+
+}, opts.period*6);
+
+// -------------------------------------------------------------------------
+// END
+// -------------------------------------------------------------------------
+</script>
+</body>
 </html>

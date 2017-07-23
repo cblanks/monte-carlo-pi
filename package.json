@@ -2,18 +2,20 @@
   "name": "monte-carlo-pi",
   "version": "1.0.0",
   "description": "An animated Monte Carlo simulation to measure \\pi",
-  "main": "index.html",
+  "main": "src/index.html",
   "dependencies": {
-    "bower": "^1.7.9"
+    "d3": "^4.10.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "lite-server": "^2.3.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node_modules/.bin/lite-server"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/user/chris9blanks/monte-carlo-pi.git"
   },
   "author": "chris.blanks@gmail.com",
-  "license": "ISC"
+  "license": "MIT"
 }

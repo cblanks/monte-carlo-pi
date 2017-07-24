@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Measuring &pi;</title>
-  <style>
+<title>Measuring &pi;</title>
+<style>
 
 body {
   font-family: 'Helvetica Neue', sans-serif;
-}
-
-h2 {
   text-align: center;
 }
 
@@ -17,33 +14,32 @@ svg {
   margin: auto;
 }
 
-  </style>
+</style>
 </head>
 <body>
 
-  <h2 id="results">&pi; = ?</h2>
+<h2 id="results">&pi; = ?</h2>
+<svg width="960" height="300"></svg>
+<h2 id="trials"></h2>
 
-  <svg width="960" height="300"></svg>
-
-  <h2 id="trials"></h2>
-
-  <script src="https://d3js.org/d3.v4.min.js"></script>
-  <script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
 
 // -------------------------------------------------------------------------
 // OPTIONS
 // -------------------------------------------------------------------------
 var opts = {
-    radius: 100, // px
-    thickness: 7, // px
-    period: 1500, // ms
-    batch: 10,
-    color: {
-      circle: 'steelblue',
-      square: 'black',
-      new: 'black'
-    }
-  };
+  radius: 100, // pixels
+  thickness: 7, // pixels
+  period: 1500, // milliseconds
+  batch: 10, // balls per drop
+  maxAge: 99, // saving the Queen from letter writing
+  color: {
+    circle: 'steelblue',
+    square: 'black',
+    new: 'black'
+  }
+};
 
 // -------------------------------------------------------------------------
 // SETUP THE VIEW
@@ -53,30 +49,30 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 
 var view = svg.append("g")
-    .attr("transform", "translate(" + width / 2.0 + "," + height / 4 + ")")
-    .attr("fill", "none")
-    .attr("stroke-width", opts.thickness);
+  .attr("transform", "translate(" + width / 2.0 + "," + height / 4 + ")")
+  .attr("fill", "none")
+  .attr("stroke-width", opts.thickness);
 
 var square = view.append("g")
-    .attr("class", "square")
-  .selectAll("rect")
-    .data([ opts.radius*2 ])
-  .enter().append("rect")
-    .attr("width", function(d) { return d; })
-    .attr("height", function(d) { return d; })
-    .attr("x", function(d) { return d/4; });
+  .attr("class", "square")
+.selectAll("rect")
+  .data([ opts.radius*2 ])
+.enter().append("rect")
+  .attr("width", function(d) { return d; })
+  .attr("height", function(d) { return d; })
+  .attr("x", function(d) { return d/4; });
 
 var circle = view.append("g")
-    .attr("class", "circle")
-  .selectAll("circle")
-    .data([ opts.radius ])
-  .enter().append("circle")
-    .attr("r", function(d) { return d; })
-    .attr("cx", function(d) { return -d; })
-    .attr("cy", function(d) { return d; });
+  .attr("class", "circle")
+.selectAll("circle")
+  .data([ opts.radius ])
+.enter().append("circle")
+  .attr("r", function(d) { return d; })
+  .attr("cx", function(d) { return -d*3/2; })
+  .attr("cy", function(d) { return d; });
 
 var ballDropZone = view.append("g")
-    .attr("class", "balls");
+  .attr("class", "balls");
 
 // -------------------------------------------------------------------------
 // SETUP THE EXPERIMENT
@@ -87,30 +83,32 @@ var trialsElement = d3.select('#trials'),
     count = {
       circle: 0,
       square: 0
-    };
+    },
+    relativeError = 1.0;
 
 function isInsideCircle(x, y) {
-    var x = x - opts.radius,
-        y = y - opts.radius,
-        r = Math.sqrt(x*x + y*y);
+  var x = x - opts.radius,
+      y = y - opts.radius,
+      r = Math.sqrt(x*x + y*y);
 
-    return r <= opts.radius;
+  return r <= opts.radius;
 }
 
 function nextBall() {
-    var x = Math.random() * opts.radius * 2,
-        y = Math.random() * opts.radius * 2,
-        inCircle = isInsideCircle(x, y);
+  var x = Math.random() * opts.radius * 2,
+      y = Math.random() * opts.radius * 2,
+      inCircle = isInsideCircle(x, y);
 
-    count.square++;
-    if(inCircle) { count.circle++; }
+  count.square++;
+  if(inCircle) { count.circle++; }
 
-    return {
-      i: count.square,
-      x: x,
-      y: y,
-      color: inCircle ? opts.color.circle : opts.color.square
-    };
+  return {
+    i: count.square,
+    x: x,
+    y: y,
+    age: 0,
+    color: inCircle ? opts.color.circle : opts.color.square
+  };
 }
 
 function updateCalculations() {
@@ -119,49 +117,65 @@ function updateCalculations() {
   trialsElement.html(trialsText+" fall inside the circle.");
 
   setTimeout(function() {
-    var p = Math.PI / 4,
+    var p = count.circle / count.square,
       pi = {
-        estimate: 4.0 * count.circle / count.square,
+        estimate: 4.0 * p,
         uncertainty: 4.0 * Math.sqrt(
           p * (1-p) / count.square
         )
       };
 
+    relativeError = pi.uncertainty/pi.estimate;
+
     resultsElement.html(
-      "&pi; = "+pi.estimate.toFixed(5)+" &pm; "+pi.uncertainty.toFixed(5)
+      "&pi; = "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+" ("+(100*relativeError).toFixed(1)+"% uncertainty)"
     );
 
   }, opts.period);
 }
 
-function drop() {
-    for(var i=0; i<opts.batch; i++) {
-      drops.push( nextBall() );
+function ageData() {
+  for(var i=drops.length-1; i>-1; i--) {
+    drops[i].age++;
+
+    if(drops[i].age > opts.maxAge) {
+      drops.splice(i, 1);
     }
+  }
+}
 
-    updateCalculations();
+function drop() {
 
-    var balls = ballDropZone.selectAll("circle")
-        .data(drops, function(d) { return d.i; });
+  for(var i=0; i<opts.batch; i++) {
+    drops.push( nextBall() );
+  }
+  updateCalculations();
+  ageData();
 
-    balls // the update selection
-      .transition(t)
-        .attr("fill-opacity", function(d) {
-          var age = count.square - d.i;
-          return Math.max(1 - age*0.02, 0.1);
-        });
+  var balls = ballDropZone.selectAll("circle")
+    .data(drops, function(d) { return d.i; });
 
-    balls.enter().append("circle")
-        .attr("fill", opts.color.new)
-        .attr("fill-opacity", 1.0)
-        .attr("r", opts.thickness)
-        .attr("cx", function(d) { return d.x - opts.radius; })
-        .attr("cy", -50)
-      .transition(t)
-        .attr("cy", function(d) { return d.y; })
-        .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
+  balls // the update selection
+  .transition(t)
+    .attr("fill-opacity", function(d) { return 1 - d.age/opts.maxAge; });
 
-    if(count.square < 1000) setTimeout(drop, opts.period/2);
+  balls.exit().remove();
+
+  balls.enter().append("circle")
+    .attr("fill", opts.color.new)
+    .attr("fill-opacity", 1.0)
+    .attr("r", opts.thickness)
+    .attr("cx", function(d) { return d.x - opts.radius; })
+    .attr("cy", -50)
+  .transition(t)
+    .attr("cy", function(d) { return d.y; })
+    .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
+
+  if(relativeError.toFixed(2) > 0.01) { setTimeout(drop, opts.period/2); } else {
+    d3.select('#results')
+      .style("color", opts.color.circle)
+      .style("text-decoration", "underline");
+  }
 }
 
 // -------------------------------------------------------------------------
@@ -201,7 +215,7 @@ setTimeout(function() {
   // ACT V - The experiment begins
   drop();
 
-}, opts.period*6);
+}, opts.period*5);
 
 // -------------------------------------------------------------------------
 // END

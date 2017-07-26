@@ -6,6 +6,11 @@
 
 body {
   font-family: 'Helvetica Neue', sans-serif;
+}
+
+h2 {
+  color: #fff;
+  height: 35px;
   text-align: center;
 }
 
@@ -20,9 +25,14 @@ svg {
 </head>
 <body>
 
-<h2 id="results" class="math">&pi; = ?</h2>
 <svg width="960" height="300"></svg>
-<h2 id="trials" class="math"></h2>
+<h2 id="formula">
+  &there4; &pi; = 4A<sub>&#x25EF;</sub>/A<sub>&#x25A2;</sub>
+</h2>
+<h2 id="results"></h2>
+<h2 id="conclusion">
+  <br>stopped with 1% statistical uncertainty
+</h2>
 
 <script>
 
@@ -102,8 +112,9 @@ var ballDropZone = view.append("g")
 // -------------------------------------------------------------------------
 // SETUP THE EXPERIMENT
 // -------------------------------------------------------------------------
-var trialsElement = d3.select('#trials'),
+var formulaElement = d3.select('#formula'),
     resultsElement = d3.select('#results'),
+    conclusionElement = d3.select('#conclusion'),
     drops = [],
     count = {
       circle: 0,
@@ -137,26 +148,24 @@ function nextBall() {
 }
 
 function updateCalculations() {
-  var trialsText = "After <span style=\"color:"+opts.color.circle+"\">"+count.circle+"</span> of "+count.square+" ball";
-  if(1 !== count.square) { trialsText = trialsText+"s"; }
-  trialsElement.html(trialsText+" fall inside the circle.");
+  var p = count.circle / count.square,
+  pi = {
+    estimate: 4.0 * p,
+    uncertainty: 4.0 * Math.sqrt(
+      p * (1-p) / count.square
+    )
+  };
 
-  setTimeout(function() {
-    var p = count.circle / count.square,
-      pi = {
-        estimate: 4.0 * p,
-        uncertainty: 4.0 * Math.sqrt(
-          p * (1-p) / count.square
-        )
-      };
+  relativeError = pi.uncertainty/pi.estimate;
 
-    relativeError = pi.uncertainty/pi.estimate;
+  var resultsText = "&pi; "+
+    "&asymp; "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+
+    "<br>"+
+    "after <span style=\"color:"+opts.color.circle+"\">"+count.circle+"</span> of "+count.square+" ball";
 
-    resultsElement.html(
-      "&pi; = A<sub>&#x25EF;</sub>/4A<sub>&#x25A2;</sub> = "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+" ("+(100*relativeError).toFixed(1)+"% uncertainty)"
-    );
+  if(1 !== count.square) { resultsText = resultsText+"s"; }
 
-  }, opts.period);
+  resultsElement.html(resultsText+" fall inside the circle");
 }
 
 function ageData() {
@@ -197,16 +206,18 @@ function drop() {
     .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
 
   if(relativeError >= 0.01) { setTimeout(drop, opts.period/2); } else {
-    d3.select('#results')
-      .style("color", opts.color.circle)
-      .style("text-decoration", "underline");
+    conclusionElement
+      .style("text-decoration", "underline")
+      .transition(t)
+        .styleTween("color", function() { return d3.interpolate("white", opts.color.circle); });
+
   }
 }
 
 // -------------------------------------------------------------------------
 // RUN THE EXPERIMENT
 // -------------------------------------------------------------------------
-var t = d3.transition().duration(opts.period);
+var t = d3.transition().duration(opts.period*1.5);
 
 setTimeout(function() {
   // ACT I - A square appears
@@ -216,7 +227,7 @@ setTimeout(function() {
   squareEqn.transition(t)
     .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
 
-}, opts.period);
+}, opts.period*1);
 
 setTimeout(function() {
   // ACT II - A circle appears
@@ -238,20 +249,23 @@ setTimeout(function() {
 }, opts.period*3);
 
 setTimeout(function() {
-  // ACT IV - The circle changes color
-  circle.transition(t)
-    .styleTween("stroke", function() { return d3.interpolate(opts.color.new, opts.color.circle); });
-
-  resultsElement
-    .html("&pi; = A<sub>&#x25EF;</sub>/4A<sub>&#x25A2;</sub> = ?");
+  // ACT IV - The formula for PI is revealed
+  formulaElement.transition(t)
+    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
 
 }, opts.period*4);
 
 setTimeout(function() {
   // ACT V - The experiment begins
+  circle.transition(t)
+    .styleTween("stroke", function() { return d3.interpolate(opts.color.new, opts.color.circle); });
+
+  resultsElement.transition(t)
+    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
+
   drop();
 
-}, opts.period*5);
+}, opts.period*6);
 
 // -------------------------------------------------------------------------
 // END

@@ -200,7 +200,7 @@ function drop() {
     .attr("fill-opacity", 1.0)
     .attr("r", opts.thickness)
     .attr("cx", function(d) { return d.x - opts.radius; })
-    .attr("cy", -50)
+    .attr("cy", -70)
   .transition(t)
     .attr("cy", function(d) { return d.y; })
     .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });

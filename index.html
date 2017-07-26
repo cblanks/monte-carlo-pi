@@ -15,14 +15,15 @@ svg {
 }
 
 </style>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
 </head>
 <body>
 
-<h2 id="results">&pi; = ?</h2>
+<h2 id="results" class="math">&pi; = ?</h2>
 <svg width="960" height="300"></svg>
-<h2 id="trials"></h2>
+<h2 id="trials" class="math"></h2>
 
-<script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
 
 // -------------------------------------------------------------------------
@@ -60,7 +61,7 @@ var square = view.append("g")
 .enter().append("rect")
   .attr("width", function(d) { return d; })
   .attr("height", function(d) { return d; })
-  .attr("x", function(d) { return d/4; });
+  .attr("x", function(d) { return d/2; });
 
 var circle = view.append("g")
   .attr("class", "circle")
@@ -68,8 +69,32 @@ var circle = view.append("g")
   .data([ opts.radius ])
 .enter().append("circle")
   .attr("r", function(d) { return d; })
-  .attr("cx", function(d) { return -d*3/2; })
+  .attr("cx", function(d) { return -d*2; })
   .attr("cy", function(d) { return d; });
+
+var squareEqn = view.append("g")
+.selectAll("foreignObject")
+  .data([ opts.radius ])
+.enter().append("foreignObject")
+  .attr("width", function(d) { return d*2; })
+  .attr("height", function(d) { return d; })
+  .attr("x", function(d) { return d; })
+  .attr("y", function(d) { return d/2; })
+.append("xhtml:h2")
+  .style("color", "white")
+  .html("A<sub>&#x25A2;</sub> = d<sup>2</sup>");
+
+var circleEqn = view.append("g")
+.selectAll("foreignObject")
+  .data([ opts.radius ])
+.enter().append("foreignObject")
+  .attr("width", function(d) { return d*2; })
+  .attr("height", function(d) { return d; })
+  .attr("x", function(d) { return -3*d; })
+  .attr("y", function(d) { return d/2; })
+.append("xhtml:h2")
+  .style("color", "white")
+  .html("A<sub>&#x25EF;</sub> = &pi;r<sup>2</sup>");
 
 var ballDropZone = view.append("g")
   .attr("class", "balls");
@@ -128,7 +153,7 @@ function updateCalculations() {
     relativeError = pi.uncertainty/pi.estimate;
 
     resultsElement.html(
-      "&pi; = "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+" ("+(100*relativeError).toFixed(1)+"% uncertainty)"
+      "&pi; = A<sub>&#x25EF;</sub>/4A<sub>&#x25A2;</sub> = "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+" ("+(100*relativeError).toFixed(1)+"% uncertainty)"
     );
 
   }, opts.period);
@@ -171,7 +196,7 @@ function drop() {
     .attr("cy", function(d) { return d.y; })
     .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
 
-  if(relativeError.toFixed(2) > 0.01) { setTimeout(drop, opts.period/2); } else {
+  if(relativeError >= 0.01) { setTimeout(drop, opts.period/2); } else {
     d3.select('#results')
       .style("color", opts.color.circle)
       .style("text-decoration", "underline");
@@ -188,6 +213,9 @@ setTimeout(function() {
   square.transition(t)
     .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
 
+  squareEqn.transition(t)
+    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
+
 }, opts.period);
 
 setTimeout(function() {
@@ -195,12 +223,17 @@ setTimeout(function() {
   circle.transition(t)
     .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
 
+  circleEqn.transition(t)
+    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
+
 }, opts.period*2);
 
 setTimeout(function() {
   // ACT III - The square and circle overlap
   square.transition(t).attr("x", function(d) { return -d/2; });
   circle.transition(t).attr("cx", 0);
+  squareEqn
+    .html("A<sub>&#x25A2;</sub> = 4r<sup>2</sup>");
 
 }, opts.period*3);
 
@@ -208,6 +241,9 @@ setTimeout(function() {
   // ACT IV - The circle changes color
   circle.transition(t)
     .styleTween("stroke", function() { return d3.interpolate(opts.color.new, opts.color.circle); });
+
+  resultsElement
+    .html("&pi; = A<sub>&#x25EF;</sub>/4A<sub>&#x25A2;</sub> = ?");
 
 }, opts.period*4);
 

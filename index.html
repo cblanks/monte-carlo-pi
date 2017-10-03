@@ -14,6 +14,26 @@ h2 {
   text-align: center;
 }
 
+.btn {
+  background: slateblue;
+  border: thin solid darkslateblue;
+  border-radius: 3px;
+  color: white;
+  position: absolute;
+}
+
+.btn:hover {
+  background: darkslateblue;
+}
+
+.center {
+  text-align: center;
+}
+
+.hide {
+  display: none;
+}
+
 svg {
   display: block;
   margin: auto;
@@ -21,7 +41,10 @@ svg {
 
 </style>
 
-<script src="https://d3js.org/d3.v4.min.js"></script>
+<!-- build:js -->
+<script src="node_modules/d3/build/d3.js"></script>
+<!-- endbuild -->
+
 </head>
 <body>
 
@@ -41,14 +64,15 @@ svg {
 // -------------------------------------------------------------------------
 var opts = {
   radius: 100, // pixels
-  thickness: 7, // pixels
-  period: 1500, // milliseconds
+  thickness: 5, // pixels
+  period: 2000, // milliseconds
   batch: 10, // balls per drop
   maxAge: 99, // saving the Queen from letter writing
   color: {
     circle: 'steelblue',
     square: 'black',
-    new: 'black'
+    new: 'black',
+    old: 'grey'
   }
 };
 
@@ -158,14 +182,13 @@ function updateCalculations() {
 
   relativeError = pi.uncertainty/pi.estimate;
 
-  var resultsText = "&pi; "+
-    "&asymp; "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3)+
-    "<br>"+
-    "after <span style=\"color:"+opts.color.circle+"\">"+count.circle+"</span> of "+count.square+" ball";
+  var ballCounter = 1 === count.square ? "ball" : "balls",
+    resultsText = ""+
+      "After <span style=\"color:"+opts.color.circle+"\">"+count.circle+"</span> of "+count.square+" "+ballCounter+" fall inside the circle:"+
+      "<br>"+
+      "&pi; &asymp; "+pi.estimate.toFixed(3)+" &pm; "+pi.uncertainty.toFixed(3);
 
-  if(1 !== count.square) { resultsText = resultsText+"s"; }
-
-  resultsElement.html(resultsText+" fall inside the circle");
+  resultsElement.html(resultsText);
 }
 
 function ageData() {
@@ -205,7 +228,10 @@ function drop() {
     .attr("cy", function(d) { return d.y; })
     .styleTween("fill", function(d) { return d3.interpolate(opts.color.new, d.color); });
 
-  if(relativeError >= 0.01) { setTimeout(drop, opts.period/2); } else {
+  if(0 === relativeError || 0.01 < relativeError) { 
+    setTimeout(drop, opts.period/2); 
+  
+  } else {
     conclusionElement
       .style("text-decoration", "underline")
       .transition(t)
@@ -217,55 +243,70 @@ function drop() {
 // -------------------------------------------------------------------------
 // RUN THE EXPERIMENT
 // -------------------------------------------------------------------------
-var t = d3.transition().duration(opts.period*1.5);
+var t = d3.transition().duration(opts.period);
 
 setTimeout(function() {
-  // ACT I - A square appears
+  // ACT I - Shapes appear
   square.transition(t)
     .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
 
+  circle.transition(t)
+    .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
+    
+}, opts.period*0);
+
+setTimeout(function() {
+  // ACT II - Equations appear
   squareEqn.transition(t)
+    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
+
+  circleEqn.transition(t)
     .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
 
 }, opts.period*1);
 
 setTimeout(function() {
-  // ACT II - A circle appears
-  circle.transition(t)
-    .styleTween("stroke", function() { return d3.interpolate("white", opts.color.new); });
+  // ACT III - The square and circle overlap
+  circle.transition(t).attr("cx", 0);
+  square.transition(t).attr("x", function(d) { return -d/2; });
 
-  circleEqn.transition(t)
-    .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
+  squareEqn
+    .html(squareEqn.html()+" = 4r<sup>2</sup>");
 
 }, opts.period*2);
 
 setTimeout(function() {
-  // ACT III - The square and circle overlap
-  square.transition(t).attr("x", function(d) { return -d/2; });
-  circle.transition(t).attr("cx", 0);
+  // ACT IV - Find formula for pi Part I
+  circleEqn
+    .html(circleEqn.html()+"</br>&pi; = A<sub>&#x25EF;</sub>/r<sup>2</sup>");
+
   squareEqn
-    .html("A<sub>&#x25A2;</sub> = 4r<sup>2</sup>");
+    .html(squareEqn.html()+"</br>r<sup>2</sup> = A<sub>&#x25A2;</sub>/4");
 
 }, opts.period*3);
 
 setTimeout(function() {
-  // ACT IV - The formula for PI is revealed
+  // ACT V - The experiment begins
   formulaElement.transition(t)
     .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
 
-}, opts.period*4);
+  circleEqn.transition(t)
+    .styleTween("color", function() { return d3.interpolate(opts.color.new, opts.color.old); });
+  
+  squareEqn.transition(t)
+    .styleTween("color", function() { return d3.interpolate(opts.color.new, opts.color.old); });
 
-setTimeout(function() {
-  // ACT V - The experiment begins
   circle.transition(t)
     .styleTween("stroke", function() { return d3.interpolate(opts.color.new, opts.color.circle); });
 
   resultsElement.transition(t)
     .styleTween("color", function() { return d3.interpolate("white", opts.color.new); });
 
-  drop();
+  setTimeout(function() {
+    drop();
+  }, opts.period*1);
 
-}, opts.period*6);
+}, opts.period*4);
 
 // -------------------------------------------------------------------------
 // END

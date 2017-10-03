@@ -4,13 +4,18 @@
   "description": "An animated Monte Carlo simulation to measure \\pi",
   "main": "src/index.html",
   "dependencies": {
-    "d3": "^4.10.0"
+    "bootstrap": "^3.3.7",
+    "d3": "^4.10.0",
+    "jquery": "^3.2.1"
   },
   "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-html-replace": "^1.6.2",
     "lite-server": "^2.3.0"
   },
   "scripts": {
-    "start": "node_modules/.bin/lite-server"
+    "start": "node_modules/.bin/lite-server",
+    "build": "gulp"
   },
   "repository": {
     "type": "git",

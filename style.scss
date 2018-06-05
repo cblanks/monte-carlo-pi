@@ -1,0 +1,36 @@
+$white: #fff;
+
+body {
+    font-family: 'Helvetica Neue', sans-serif;
+}
+
+h2 {
+    color: $white;
+    height: 35px;
+    text-align: center;
+}
+
+.btn {
+    background: slateblue;
+    border: thin solid darkslateblue;
+    border-radius: 3px;
+    color: $white;
+    position: absolute;
+    
+    &:hover {
+        background: darkslateblue;
+    }
+}
+
+.center {
+    text-align: center;
+}
+
+.hide {
+    display: none;
+}
+
+svg {
+    display: block;
+    margin: auto;
+}

@@ -9,12 +9,13 @@
     "jquery": "^3.2.1"
   },
   "devDependencies": {
+    "browser-sync": "^2.24.4",
     "gulp": "^3.9.1",
     "gulp-html-replace": "^1.6.2",
-    "lite-server": "^2.3.0"
+    "gulp-sass": "^4.0.1"
   },
   "scripts": {
-    "start": "node_modules/.bin/lite-server",
+    "start": "gulp watch",
     "build": "gulp"
   },
   "repository": {

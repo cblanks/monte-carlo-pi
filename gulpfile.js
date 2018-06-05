@@ -11,11 +11,7 @@ gulp.task('default', function() {
         css: {
           src: gulp.src('style.scss').pipe(sass()),
           tpl: '<style>%s</style>'
-        }
-      })
-    )
-    .pipe(
-      htmlreplace({
+        },
         'js': {
           src: gulp.src('node_modules/d3/build/d3.min.js'),
           tpl: '<script>%s</script>'

@@ -16,6 +16,8 @@ So, to find _&pi;_ we have to estimate the areas of the circle and square, actua
 
 Using the Monte Carlo method, we randomly choose _N_ points inside the square and count how many, _k_, of them are also inside the circle.  Since the drop locations are (_pseudo_-)random, _i.e._ are assumed to have an equal chance of landing anywhere inside the square, then the ratio _k/N_ will give an estimate of the ratio of the areas circle/square and _4k/N_ will be an estimate of _&pi;_.
 
+## Precision
+
 Let's try it with 100 points... I get _&pi;_ ≈ 3.08.
 
 And again... 3.20, 3.24 and 3.12.
@@ -32,8 +34,6 @@ With a little re-arrangment we can write down how many trials we need to use to 
 
 ![eq-precision](http://1.bp.blogspot.com/-Fe4Ip2qYCac/TiwvmAfdizI/AAAAAAAABLY/VrF88RVwJV8/s1600/required_n.png)
 
-For a precision f of 10%, for example, we need N = 27 and for 1% we need about N = 2,700.  
-
-
+For a precision f of 10%, for example, we need about 27 drops and for 1% we need about 2,700.  
 
 To provide the notes for Lu Chao, who claims to have memorised π to 67,890 digits we would need N > 2.7 × 10^(135,780).  This is why Monte Carlo is no substitute for an analytic solution. Let's assume Mr. Chao used a different method...

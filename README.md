@@ -1,3 +1,5 @@
+# Pie from Monte Carlo
+
 An animated Monte Carlo simulation to measure _&pi;_.
 
 Draw a circle of radius _r_, enclosed by a square with sides _2r_, so the circle just fits inside.  The ratio of the areas of this circle and square can be used to calculate _&pi;_:

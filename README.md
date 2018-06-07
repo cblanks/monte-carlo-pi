@@ -2,12 +2,13 @@
 
 An animated Monte Carlo simulation to measure _&pi;_.
 
-Draw a circle of radius _r_, enclosed by a square with sides _2r_, so the circle just fits inside.  The ratio of the areas of this circle and square can be used to calculate _&pi;_:
+Draw a circle of radius _r_, enclosed by a square with sides _2r_, so the circle just fits inside.
 
 _A<sub>circle</sub> = &pi;r<sup>2</sup>_
+
 _A<sub>square</sub> = 4r<sup>2</sup>_
 
-Therefore:
+The ratio of the areas of this circle and square can be used to calculate _&pi;_:
 
 _A<sub>circle</sub>/A<sub>square</sub> = &pi;r<sup>2</sup>/4r<sup>2</sup> = &pi;/4_
 

@@ -1,4 +1,4 @@
-# Pie from Monte Carlo
+# Pi from Monte Carlo
 
 An animated Monte Carlo simulation to measure _&pi;_.
 
